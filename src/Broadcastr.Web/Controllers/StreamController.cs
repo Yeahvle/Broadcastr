@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNet.Mvc;
+using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.AspNet.Mvc;
 
 // For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,11 +20,25 @@ namespace Broadcastr.Web.Controllers
             return new string[] { "value1", "value2" };
         }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+
+        [HttpGet("{id:guid}")]
+        public async Task Get(Guid id)
         {
-            return "value";
+            HttpContext.Response.ContentType = "video/mp4";
+
+            using (var reader = System.IO.File.OpenRead("sample-vid.mp4"))
+            {
+                byte[] buffer = new byte[8192];
+                var bytesRead = 0;
+                do
+                {
+                    bytesRead = await reader.ReadAsync(buffer, 0, buffer.Length);
+
+                    await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
+                    await HttpContext.Response.Body.FlushAsync();
+                }
+                while (bytesRead > 0);
+            }
         }
 
         // POST api/values
